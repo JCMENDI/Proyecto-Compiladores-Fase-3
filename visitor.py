@@ -54,3 +54,60 @@ class EvalVisitor(MiCompiladorVisitor):
         if not self.current_function:  # Solo variables globales
             self.add_code_line(f"{var_name} = None")
         return None
+    
+    def visitFuncion_declaracion(self, ctx):
+        func_name = ctx.ID().getText()
+        self.functions[func_name] = ctx
+        
+        # Guardar estado actual
+        old_memory = self.memory.copy()
+        old_output = self.output_code
+        old_indent = self.indent_level
+        
+        # Configurar para función
+        self.output_code = []
+        self.memory = {}
+        self.current_function = func_name
+        self.indent_level = 1
+
+        # Procesar parámetros
+        parametros = []
+        if ctx.lista_parametros():
+            for p in ctx.lista_parametros().parametro():
+                param_name = p.ID().getText()
+                parametros.append(param_name)
+                self.memory[param_name] = None
+
+        # Generar función
+        func_header = f"def {func_name}({', '.join(parametros)}):"
+        old_output.append(func_header)
+
+        # Procesar cuerpo
+        self.visit(ctx.bloque())
+
+        # Restaurar estado
+        old_output.extend(self.output_code)
+        self.output_code = old_output
+        self.memory = old_memory
+        self.current_function = None
+        self.indent_level = old_indent
+        return None
+
+    def visitCompound_statement(self, ctx):
+        if ctx.lista_sentencias():
+            self.visit(ctx.lista_sentencias())
+        return None
+
+    def visitLista_sentencias(self, ctx):
+        for stmt in ctx.sentencia():
+            self.visit(stmt)
+        return None
+
+    def visitSentencia(self, ctx):
+        return self.visitChildren(ctx)
+
+    def visitAsignacion(self, ctx):
+        var_name = ctx.ID().getText()
+        value = self.visit(ctx.expresion())
+        self.add_code_line(f"{var_name} = {value}")
+        return value
