@@ -111,3 +111,57 @@ class EvalVisitor(MiCompiladorVisitor):
         value = self.visit(ctx.expresion())
         self.add_code_line(f"{var_name} = {value}")
         return value
+
+    def visitSentencia_io(self, ctx):
+        if ctx.getChild(0).getText() == 'PRINTLN':
+            expr = ctx.getChild(2)
+            value = self.visit(expr)
+            # Imprimir la variable, no el valor directamente
+            self.add_code_line(f"print({expr.getText()})")
+        elif ctx.getChild(0).getText() == 'READLN':
+            var_name = ctx.getChild(2).getText()
+            self.add_code_line(f"{var_name} = int(input())")
+            self.memory[var_name] = 0
+        return None
+
+    def visitSentencia_return(self, ctx):
+        value = self.visit(ctx.expresion())
+        self.add_code_line(f"return {value}")
+        return value
+
+    def visitLlamada_procedimiento(self, ctx):
+        func_name = ctx.ID().getText()
+        if func_name not in self.functions:
+            print(f"ERROR: Función {func_name} no definida")
+            return "None"
+
+        args = []
+        if ctx.lista_argumentos():
+            for expr in ctx.lista_argumentos().expresion():
+                args.append(self.visit(expr))
+        
+        call_code = f"{func_name}({', '.join(args)})"
+        
+        # Solo generar línea si no es parte de otra expresión
+        parent_ctx = ctx.parentCtx
+        while hasattr(parent_ctx, 'parentCtx'):
+            parent_ctx = parent_ctx.parentCtx
+            if isinstance(parent_ctx, (MiCompiladorParser.AsignacionContext, 
+                                    MiCompiladorParser.Sentencia_returnContext,
+                                    MiCompiladorParser.ExpresionContext)):
+                return call_code
+        
+        self.add_code_line(call_code)
+        return call_code
+    
+    def visitSentencia_while(self, ctx):
+        condicion = self.visit(ctx.expresion())
+        # Asegurarnos que la condición es correcta para Python
+        condicion_python = condicion.replace('=', '==').replace('<>', '!=')
+        
+        # Generar código del while
+        self.add_code_line(f"while {condicion_python}:")
+        self.indent_level += 1
+        self.visit(ctx.sentencia())
+        self.indent_level -= 1
+        return None
