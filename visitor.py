@@ -165,3 +165,44 @@ class EvalVisitor(MiCompiladorVisitor):
         self.visit(ctx.sentencia())
         self.indent_level -= 1
         return None
+    
+    def visitExpresion(self, ctx):
+        if ctx.operador_relacional():
+            left = self.visit(ctx.expresion_simple(0))
+            right = self.visit(ctx.expresion_simple(1))
+            op = ctx.operador_relacional().getText()
+            return f"{left} {op} {right}"
+        return self.visit(ctx.expresion_simple(0))
+
+    def visitExpresion_simple(self, ctx):
+        result = self.visit(ctx.termino(0))
+        for i in range(1, len(ctx.termino())):
+            op = ctx.operador_aditivo(i-1).getText()
+            right = self.visit(ctx.termino(i))
+            result = f"{result} {op} {right}"
+        return result
+
+    def visitTermino(self, ctx):
+        result = self.visit(ctx.factor(0))
+        for i in range(1, len(ctx.factor())):
+            op = ctx.operador_multiplicativo(i-1).getText()
+            right = self.visit(ctx.factor(i))
+            result = f"{result} {op} {right}"
+        return result
+
+    def visitFactor(self, ctx):
+        if ctx.INT():
+            return ctx.INT().getText()
+        if ctx.FLOAT():
+            return ctx.FLOAT().getText()
+        if ctx.ID():
+            var_name = ctx.ID().getText()
+            if var_name not in self.memory:
+                print(f"ERROR: Variable {var_name} no declarada")
+                return "None"
+            return var_name
+        if ctx.expresion():
+            return f"({self.visit(ctx.expresion())})"
+        if ctx.llamada_procedimiento():
+            return self.visit(ctx.llamada_procedimiento())
+        return self.visitChildren(ctx)
