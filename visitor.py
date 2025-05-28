@@ -28,3 +28,29 @@ class EvalVisitor(MiCompiladorVisitor):
     def add_code_line(self, line):
         indent = "    " * self.indent_level
         self.output_code.append(f"{indent}{line}")
+
+    def visitPrograma(self, ctx):
+        self.output_code = []
+        self.visit(ctx.bloque())
+        self.write_output()
+        return None
+
+    def visitBloque(self, ctx):
+        if ctx.declaraciones():
+            self.visit(ctx.declaraciones())
+        self.visit(ctx.compound_statement())
+        return None
+
+    def visitDeclaraciones(self, ctx):
+        for decl in ctx.declaracion():
+            self.visit(decl)
+
+    def visitDeclaracion(self, ctx):
+        return self.visitChildren(ctx)
+
+    def visitVar_declaracion(self, ctx):
+        var_name = ctx.ID().getText()
+        self.memory[var_name] = None
+        if not self.current_function:  # Solo variables globales
+            self.add_code_line(f"{var_name} = None")
+        return None
