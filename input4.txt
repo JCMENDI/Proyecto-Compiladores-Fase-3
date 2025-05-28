@@ -1,0 +1,12 @@
+PROGRAM errores;
+VAR x : INTEGER;
+FUNCTION VOID funcion_no_retorna();
+BEGIN
+    x := 10;
+END
+BEGIN
+    y := 20;                 
+    z := funcion_no_retorna(); 
+    PRINTLN(variable_falsa);  
+    funcion_inexistente();  
+END.

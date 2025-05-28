@@ -1,0 +1,10 @@
+PROGRAM miPrograma;
+VAR resultado : INTEGER;
+FUNCTION INTEGER sumar(a : INTEGER, b : INTEGER);
+BEGIN
+    RETURN a + b;
+END
+BEGIN
+    resultado := sumar(10, 5);  
+    PRINTLN(resultado);
+END.

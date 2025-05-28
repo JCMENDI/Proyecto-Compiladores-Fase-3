@@ -1,0 +1,9 @@
+PROGRAM test;
+VAR x : INTEGER;
+VAR y : INTEGER;
+BEGIN
+    READLN(x);
+    READLN(y);
+    x := x + y * 2;
+    PRINTLN(x);
+END.
