@@ -5,7 +5,7 @@ from visitor import EvalVisitor, MiErrorListener
 import subprocess
 
 def main():
-    input_file = "input5.txt"  # Tu archivo con código fuente personalizado
+    input_file = "input1.txt"  # Tu archivo con código fuente personalizado
 
     with open(input_file, 'r', encoding='utf-8') as f:
         input_code = f.read()
