@@ -35,5 +35,5 @@ def main():
     print("▶ Ejecutando output.py...\n")
     subprocess.run(["python", "output.py"], check=False)
 
-if _name_ == '_main_':
+if __name__ == '_main_':
     main()
